@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  openwebui.plist — launchd user agent for the Open WebUI server
+
+  setup_openwebui.sh copies this file to ~/Library/LaunchAgents/ after
+  substituting the placeholders:
+    __VENV_DIR__  →  actual path to the Python venv  (e.g. ~/.local/openwebui-venv)
+    __HOME__      →  the user's home directory
+
+  Key design decisions:
+    • Bound to 127.0.0.1:3000 — only Nginx (on the WireGuard IP) can reach it.
+    • WEBUI_AUTH=True — requires user login; Open WebUI will not accept
+      anonymous requests.
+    • Environment is sourced from ~/.local/openwebui.env (WEBUI_SECRET_KEY, etc.)
+      which is generated once by setup_openwebui.sh and never committed to git.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.openwebui.server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__VENV_DIR__/bin/open-webui</string>
+    <string>serve</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>3000</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>__HOME__</string>
+
+    <!-- Open WebUI will load additional env vars from this file at startup -->
+    <key>ENV_FILE</key>
+    <string>__HOME__/.local/openwebui.env</string>
+
+    <!-- Point at the localhost-only Ollama endpoint -->
+    <key>OLLAMA_BASE_URL</key>
+    <string>http://127.0.0.1:11434</string>
+
+    <!-- Enforce authentication — no anonymous access -->
+    <key>WEBUI_AUTH</key>
+    <string>True</string>
+
+    <!-- Store data (chat history, user DB) in the user's home directory -->
+    <key>DATA_DIR</key>
+    <string>__HOME__/.local/openwebui-data</string>
+
+    <key>PATH</key>
+    <string>__VENV_DIR__/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>__HOME__</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/openwebui.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/openwebui.log</string>
+
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+</dict>
+</plist>

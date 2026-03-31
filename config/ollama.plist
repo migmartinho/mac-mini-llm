@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ollama.plist — launchd user agent for the Ollama LLM server
+
+  Placed in ~/Library/LaunchAgents/ by setup_ollama.sh.
+
+  Key design decisions:
+    • OLLAMA_HOST=127.0.0.1:11434 — binds to localhost only; Nginx is the
+      sole external-facing entry point.
+    • OLLAMA_KEEP_ALIVE=30m — keeps the most recently used model resident in
+      memory for 30 minutes, balancing responsiveness against RAM pressure on
+      the 8 GB M1.
+    • KeepAlive=true — launchd will restart Ollama automatically if it exits.
+    • RunAtLoad=true — starts Ollama when the user logs in.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ollama.server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/ollama</string>
+    <string>serve</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- Bind to localhost only — Nginx proxies external traffic -->
+    <key>OLLAMA_HOST</key>
+    <string>127.0.0.1:11434</string>
+
+    <!-- Keep the last model in VRAM for 30 minutes before unloading -->
+    <key>OLLAMA_KEEP_ALIVE</key>
+    <string>30m</string>
+
+    <!-- Limit parallel request queue; 1 is safest on 8 GB for large models -->
+    <key>OLLAMA_MAX_QUEUE</key>
+    <string>4</string>
+
+    <!-- Homebrew binaries need to be on PATH -->
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- __HOME__ is substituted at install time by setup_ollama.sh -->
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/ollama.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/ollama.log</string>
+
+  <!-- Throttle restart to avoid tight crash loops -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+</dict>
+</plist>
