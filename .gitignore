@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Python virtual environments (used by Open WebUI)
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Logs
+*.log
+logs/
+
+# Nginx runtime
+*.pid
+*.sock
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment / secrets
+.env
+*.env
+secrets/
+
+# Ollama model cache (large binaries, managed by Ollama itself)
+# ~/.ollama is the default location; nothing lands in the repo directory
